@@ -7,6 +7,7 @@ import 'task_model.dart';
 import 'task_service.dart';
 import 'task_tile.dart';
 import '../auth/login_screen.dart';
+
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -47,8 +48,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> addTask(String title) async {
     final auth = Provider.of<AuthService>(context, listen: false);
-    final newTask = await taskService.addTask(title, auth.email ?? '');
-    setState(() => tasks.insert(0, newTask));
+    if (auth.email != null) {
+      final newTask = await taskService.addTask(title, auth.email!);
+      setState(() => tasks.insert(0, newTask));
+    }
   }
 
   Future<void> deleteTask(String id) async {
@@ -97,7 +100,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             onPressed: () async {
               if (newTaskTitle.trim().isNotEmpty) {
                 await addTask(newTaskTitle.trim());
-                Navigator.pop(context);
+                if (context.mounted) {
+                  Navigator.pop(context);
+                }
               }
             },
             child: const Text('Add'),
@@ -132,7 +137,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               if (updatedTitle.isNotEmpty) {
                 await editTask(task, updatedTitle);
                 controller.dispose();
-                Navigator.pop(context);
+                if (context.mounted) {
+                  Navigator.pop(context);
+                }
               }
             },
             child: const Text('Save'),

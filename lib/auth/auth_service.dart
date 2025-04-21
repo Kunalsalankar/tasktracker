@@ -11,13 +11,10 @@ class AuthService extends ChangeNotifier {
   bool get isAuthenticated => _isAuthenticated;
   String? get username => _username;
   String? get userId => _userId;
-
-  // ✅ Add this to fix 'email' error
   String? get email => _username;
 
-  // Check if user is already logged in
   Future<void> checkCurrentUser() async {
-    final User? user = _supabase.auth.currentUser;
+    final user = _supabase.auth.currentUser;
     if (user != null) {
       _isAuthenticated = true;
       _username = user.email;
@@ -27,7 +24,6 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // Login with email & password
   Future<bool> login(String email, String password) async {
     try {
       final response = await _supabase.auth.signInWithPassword(
@@ -39,7 +35,6 @@ class AuthService extends ChangeNotifier {
         _isAuthenticated = true;
         _username = response.user!.email;
         _userId = response.user!.id;
-
         await _fetchUserProfile();
         notifyListeners();
         return true;
@@ -50,7 +45,6 @@ class AuthService extends ChangeNotifier {
     return false;
   }
 
-  // Signup with optional full name
   Future<bool> signup(String email, String password, {String? fullName}) async {
     try {
       final response = await _supabase.auth.signUp(
@@ -79,7 +73,6 @@ class AuthService extends ChangeNotifier {
     return false;
   }
 
-  // Store user profile in Supabase 'profiles' table
   Future<void> _storeUserProfile(String userId, String email, String fullName) async {
     try {
       await _supabase.from('profiles').upsert({
@@ -88,13 +81,12 @@ class AuthService extends ChangeNotifier {
         'full_name': fullName,
         'created_at': DateTime.now().toIso8601String(),
         'updated_at': DateTime.now().toIso8601String(),
-      } as Map<String, Object>);
+      });
     } catch (e) {
       debugPrint('Error storing user profile: $e');
     }
   }
 
-  // Fetch user profile data from Supabase
   Future<Map<String, dynamic>?> _fetchUserProfile() async {
     if (_userId != null) {
       try {
@@ -115,7 +107,6 @@ class AuthService extends ChangeNotifier {
     return null;
   }
 
-  // Update user profile
   Future<bool> updateProfile({String? fullName, String? bio}) async {
     if (_userId == null) return false;
 
@@ -138,8 +129,7 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // Logout
-  void logout() async {
+  Future<void> logout() async {
     await _supabase.auth.signOut();
     _isAuthenticated = false;
     _username = null;
